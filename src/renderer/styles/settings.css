@@ -258,12 +258,12 @@
 }
 
 .btn-action.maintenance {
-  background: #fef3c7;
-  color: #d97706;
+  background: rgba(252, 124, 120, 0.15);
+  color: #fc7c78;
 }
 
 .btn-action.maintenance:hover {
-  background: #fde68a;
+  background: rgba(252, 124, 120, 0.25);
 }
 
 .btn-action.active {
@@ -363,6 +363,14 @@
 
 .btn-icon:hover svg {
   color: #0f172a;
+}
+
+.btn-icon.danger:hover {
+  background: rgba(252, 124, 120, 0.1);
+}
+
+.btn-icon.danger:hover svg {
+  color: #fc7c78;
 }
 
 .btn-add {

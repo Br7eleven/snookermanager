@@ -210,14 +210,14 @@
 
 .bar {
   width: 100%;
-  background: #10b981;
+  background: #64748b;
   border-radius: 6px 6px 0 0;
   transition: all 0.3s;
   cursor: pointer;
 }
 
 .bar:hover {
-  background: #059669;
+  background: #475569;
 }
 
 .bar-label {
@@ -371,6 +371,16 @@
 
 .session-table tbody tr:hover {
   background: #f8fafc;
+}
+
+.table-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #d1fae5;
+  color: #059669;
 }
 
 .game-badge {

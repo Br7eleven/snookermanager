@@ -87,6 +87,12 @@ export default function Dashboard() {
 
   return (
     <div className="dashboard-container">
+      {/* Operations Banner */}
+      <div className="operations-banner">
+        <span className="banner-icon">ℹ️</span>
+        <p>Operations Tip: Close sessions immediately after customer checkout to maximize turnaround.</p>
+      </div>
+
       {/* Metric Cards Row */}
       <div className="metric-cards-row">
         <div className="metric-card">
@@ -210,7 +216,7 @@ export default function Dashboard() {
             </button>
             <button
               onClick={() => navigate('/tables')}
-              className="quick-action-btn amber"
+              className="quick-action-btn coral"
             >
               <span className="quick-action-icon">🥤</span>
               <span>Add beverage order</span>
@@ -222,9 +228,6 @@ export default function Dashboard() {
               <span className="quick-action-icon">📊</span>
               <span>View today's report</span>
             </button>
-          </div>
-          <div className="operations-note">
-            <p>Operations Tip: Close sessions immediately after customer checkout to maximize turnaround.</p>
           </div>
         </div>
       </div>

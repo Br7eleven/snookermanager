@@ -150,12 +150,12 @@
 
 .balance-chip.positive {
   background: #d1fae5;
-  color: #065f46;
+  color: #059669;
 }
 
 .balance-chip.negative {
-  background: #fee2e2;
-  color: #991b1b;
+  background: rgba(252, 124, 120, 0.1);
+  color: #fc7c78;
 }
 
 .balance-chip.zero {

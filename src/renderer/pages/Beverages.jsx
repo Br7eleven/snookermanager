@@ -184,7 +184,11 @@ export default function Beverages() {
                   ) : (
                     <>
                       <td>{beverage.name}</td>
-                      <td>{beverage.category}</td>
+                      <td>
+                        <span className={`category-badge ${beverage.category.toLowerCase().replace(' ', '')}`}>
+                          {beverage.category === 'Hot beverages' ? 'HOT' : beverage.category.toUpperCase()}
+                        </span>
+                      </td>
                       <td>Rs {beverage.price}</td>
                       <td>
                         <label className="toggle-switch">

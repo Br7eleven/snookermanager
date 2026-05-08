@@ -41,6 +41,21 @@
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid #e2e8f0;
+  position: relative;
+}
+
+.table-card.active .table-card-header::after {
+  content: 'ACTIVE';
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: #fbbf24;
+  color: #78350f;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 0.5px;
 }
 
 .table-header-left {
@@ -94,6 +109,10 @@
 
 .status-indicator.amber .status-dot {
   animation: pulse-amber 2s infinite;
+}
+
+.table-card.active .status-indicator {
+  display: none;
 }
 
 @keyframes pulse-green {
@@ -184,9 +203,15 @@
   color: #3b82f6;
 }
 
-.game-type-badge[data-type="century"] {
+.game-type-badge[data-type="century"],
+.game-type-badge[data-type="centurybreak"] {
   background: #f3e8ff;
   color: #8b5cf6;
+}
+
+.game-type-badge[data-type="snooker"] {
+  background: #fef3c7;
+  color: #d97706;
 }
 
 .player-info {

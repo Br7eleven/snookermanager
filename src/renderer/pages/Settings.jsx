@@ -320,7 +320,7 @@ export default function Settings() {
                         <button className="btn-icon" onClick={() => editBeverage(beverage.id)}>
                           <Pencil />
                         </button>
-                        <button className="btn-icon" onClick={() => deleteBeverage(beverage.id)}>
+                        <button className="btn-icon danger" onClick={() => deleteBeverage(beverage.id)}>
                           <Trash2 />
                         </button>
                       </div>
@@ -353,7 +353,7 @@ export default function Settings() {
                         <button className="btn-icon" onClick={() => editStaff(member.id)}>
                           <Pencil />
                         </button>
-                        <button className="btn-icon" onClick={() => deleteStaff(member.id)}>
+                        <button className="btn-icon danger" onClick={() => deleteStaff(member.id)}>
                           <Trash2 />
                         </button>
                       </div>

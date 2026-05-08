@@ -246,7 +246,9 @@ export default function Reports() {
                       {format(new Date(session.date), 'hh:mm a')}
                     </div>
                   </td>
-                  <td>{session.table_name}</td>
+                  <td>
+                    <span className="table-badge">{session.table_name}</span>
+                  </td>
                   <td>
                     <span className={`game-badge ${session.game.toLowerCase().replace(' ', '')}`}>
                       <span className="game-badge-dot" />
