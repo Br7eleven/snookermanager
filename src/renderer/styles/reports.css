@@ -1,0 +1,518 @@
+.reports-container {
+  padding: 24px;
+  max-width: 1400px;
+}
+
+/* Performance Overview Section */
+.performance-section {
+  background: white;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #e2e8f0;
+}
+
+.performance-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.performance-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.date-filter-tabs {
+  display: flex;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.date-tab {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.date-tab:hover {
+  background: #e2e8f0;
+}
+
+.date-tab.active {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 18px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.stat-icon.revenue {
+  background: #d1fae5;
+  color: #10b981;
+}
+
+.stat-icon.sessions {
+  background: #dbeafe;
+  color: #3b82f6;
+}
+
+.stat-icon.popular {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
+.stat-icon.duration {
+  background: #e0e7ff;
+  color: #6366f1;
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0 0 4px 0;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.stat-change {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-change.positive {
+  color: #10b981;
+}
+
+.stat-change.neutral {
+  color: #64748b;
+}
+
+/* Charts Section */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.chart-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 24px;
+}
+
+.chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.chart-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.export-csv-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #64748b;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-csv-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.export-csv-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.bar-chart {
+  height: 220px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 8px;
+}
+
+.bar-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.bar {
+  width: 100%;
+  background: #10b981;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.bar:hover {
+  background: #059669;
+}
+
+.bar-label {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.donut-chart-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+  padding: 20px 0;
+}
+
+.donut-chart {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.donut-chart svg {
+  transform: rotate(-90deg);
+}
+
+.donut-center-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.donut-center-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.donut-center-text {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.legend-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.legend-dot.fullball {
+  background: #10b981;
+}
+
+.legend-dot.pool {
+  background: #3b82f6;
+}
+
+.legend-dot.snooker {
+  background: #f59e0b;
+}
+
+.legend-name {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.legend-percentage {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+/* Session Log Section */
+.session-log-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.session-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.session-log-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.showing-text {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.session-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.session-table thead {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.session-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.session-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.session-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.game-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.game-badge.fullball {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.game-badge.pool {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.game-badge.snooker {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.game-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.game-badge.fullball .game-badge-dot {
+  background: #059669;
+}
+
+.game-badge.pool .game-badge-dot {
+  background: #2563eb;
+}
+
+.game-badge.snooker .game-badge-dot {
+  background: #d97706;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.pagination-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 6px;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-btn.active {
+  background: #10b981;
+  color: white;
+  border-color: #10b981;
+}
+
+.pagination-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Export Section */
+.export-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.export-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.export-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.export-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.export-subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.btn-export {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-export:hover {
+  background: #059669;
+}
+
+.btn-export svg {
+  width: 16px;
+  height: 16px;
+}
