@@ -6,11 +6,9 @@ import bcrypt from 'bcryptjs';
 const dbPath = path.join(app.getPath('userData'), 'cue-club.db');
 const db = new Database(dbPath);
 
-// Enable foreign keys
 db.pragma('foreign_keys = ON');
 
 export function initializeDatabase() {
-  // Create tables
   db.exec(`
     CREATE TABLE IF NOT EXISTS staff (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,8 +30,9 @@ export function initializeDatabase() {
     CREATE TABLE IF NOT EXISTS game_types (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       table_id INTEGER NOT NULL,
-      name TEXT NOT NULL CHECK(name IN ('Full Ball', '6 Ball', 'Century')),
-      rate_per_hour REAL NOT NULL,
+      name TEXT NOT NULL,
+      rate_per_hour REAL NOT NULL DEFAULT 0,
+      billing_type TEXT NOT NULL DEFAULT 'per_hour',
       FOREIGN KEY (table_id) REFERENCES tables(id)
     );
 
@@ -89,23 +88,54 @@ export function initializeDatabase() {
     );
   `);
 
-  // Seed data if empty
+  // Migrate game_types if it still has the old name CHECK constraint
+  migrateGameTypes();
+
   const staffCount = db.prepare('SELECT COUNT(*) as count FROM staff').get();
   if (staffCount.count === 0) {
     seedDatabase();
   }
 }
 
+function migrateGameTypes() {
+  // Detect old schema by checking if billing_type column exists
+  const cols = db.prepare("PRAGMA table_info(game_types)").all().map(c => c.name);
+  if (cols.includes('billing_type')) return; // already migrated
+
+  // Recreate game_types without name CHECK, with billing_type column
+  db.exec(`
+    PRAGMA foreign_keys = OFF;
+
+    CREATE TABLE game_types_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      table_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      rate_per_hour REAL NOT NULL DEFAULT 0,
+      billing_type TEXT NOT NULL DEFAULT 'per_hour',
+      FOREIGN KEY (table_id) REFERENCES tables(id)
+    );
+
+    INSERT INTO game_types_new (id, table_id, name, rate_per_hour, billing_type)
+    SELECT id, table_id, name, rate_per_hour, 'per_hour' FROM game_types;
+
+    DROP TABLE game_types;
+    ALTER TABLE game_types_new RENAME TO game_types;
+
+    PRAGMA foreign_keys = ON;
+  `);
+
+  // Century stays per_hour; Full Ball and 6 Ball become per_frame
+  db.prepare("UPDATE game_types SET billing_type = 'per_frame' WHERE name IN ('Full Ball', '6 Ball')").run();
+
+  console.log('game_types migrated: billing_type column added');
+}
+
 function seedDatabase() {
   const passwordHash = bcrypt.hashSync('admin', 10);
 
-  // Insert default admin
-  db.prepare(`
-    INSERT INTO staff (full_name, username, password_hash, role)
-    VALUES (?, ?, ?, ?)
-  `).run('Admin User', 'admin', passwordHash, 'owner');
+  db.prepare(`INSERT INTO staff (full_name, username, password_hash, role) VALUES (?, ?, ?, ?)`)
+    .run('Admin User', 'admin', passwordHash, 'owner');
 
-  // Insert tables
   const tableTypes = [
     { name: 'Private Table 1', type: 'private' },
     { name: 'Private Table 2', type: 'private' },
@@ -116,19 +146,15 @@ function seedDatabase() {
   ];
 
   const insertTable = db.prepare('INSERT INTO tables (name, type) VALUES (?, ?)');
-  const insertGameType = db.prepare('INSERT INTO game_types (table_id, name, rate_per_hour) VALUES (?, ?, ?)');
+  const insertGT = db.prepare('INSERT INTO game_types (table_id, name, rate_per_hour, billing_type) VALUES (?, ?, ?, ?)');
 
   tableTypes.forEach(table => {
-    const result = insertTable.run(table.name, table.type);
-    const tableId = result.lastInsertRowid;
-
-    // Add game types for each table
-    insertGameType.run(tableId, 'Full Ball', 150);
-    insertGameType.run(tableId, '6 Ball', 120);
-    insertGameType.run(tableId, 'Century', 200);
+    const { lastInsertRowid: tableId } = insertTable.run(table.name, table.type);
+    insertGT.run(tableId, 'Full Ball', 150, 'per_frame');
+    insertGT.run(tableId, '6 Ball', 120, 'per_frame');
+    insertGT.run(tableId, 'Century', 200, 'per_hour');
   });
 
-  // Insert sample beverages
   const beverages = [
     { name: 'Pepsi', category: 'Soft Drink', price: 30 },
     { name: 'Green Tea', category: 'Hot Beverage', price: 25 },
@@ -137,11 +163,8 @@ function seedDatabase() {
     { name: 'Chips', category: 'Snack', price: 35 },
     { name: 'Juice', category: 'Soft Drink', price: 50 },
   ];
-
-  const insertBeverage = db.prepare('INSERT INTO beverages (name, category, price) VALUES (?, ?, ?)');
-  beverages.forEach(bev => {
-    insertBeverage.run(bev.name, bev.category, bev.price);
-  });
+  const insertBev = db.prepare('INSERT INTO beverages (name, category, price) VALUES (?, ?, ?)');
+  beverages.forEach(b => insertBev.run(b.name, b.category, b.price));
 
   console.log('Database seeded successfully');
 }

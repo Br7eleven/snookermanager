@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit2, Trash2, X, ShoppingBag } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, ShoppingBag } from 'lucide-react';
 import '../styles/beverages.css';
 import { useToast } from '../hooks/useToast';
+import BeverageDrawer from '../components/ui/BeverageDrawer';
+import { useAppStore } from '../store/appStore';
 
 export default function Beverages() {
+  const { user } = useAppStore();
+  const isOwner = user?.role === 'owner';
   const [beverages, setBeverages] = useState([]);
   const [filteredBeverages, setFilteredBeverages] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,7 +68,7 @@ export default function Beverages() {
   const handleDelete = async (beverage) => {
     if (deleteConfirm === beverage.id) {
       try {
-        const result = await window.electron.invoke('beverages:delete', { id: beverage.id });
+        const result = await window.electron.deleteBeverage({ id: beverage.id });
         if (result.success) {
           toast.success(`${beverage.name} removed`);
           loadBeverages();
@@ -98,7 +102,12 @@ export default function Beverages() {
     }
   };
 
-  const categories = ['All', 'Drinks', 'Snacks', 'Hot beverages'];
+  const FIXED_CATEGORIES = ['Drinks', 'Snacks', 'Hot beverages', 'Smoking'];
+  const dynamicCategories = beverages
+    .map(b => b.category)
+    .filter(c => c && !FIXED_CATEGORIES.includes(c));
+  const extraCategories = [...new Set(dynamicCategories)];
+  const categories = ['All', ...FIXED_CATEGORIES, ...extraCategories];
 
   if (loading) {
     return (
@@ -136,10 +145,12 @@ export default function Beverages() {
             ))}
           </select>
         </div>
-        <button className="btn-emerald" onClick={handleAdd}>
-          <Plus size={18} />
-          Add item
-        </button>
+        {isOwner && (
+          <button className="btn-emerald" onClick={handleAdd}>
+            <Plus size={18} />
+            Add item
+          </button>
+        )}
       </div>
 
       {filteredBeverages.length === 0 ? (
@@ -147,10 +158,12 @@ export default function Beverages() {
           <ShoppingBag size={48} />
           <h3>No beverages yet</h3>
           <p>Add your first beverage item to get started</p>
-          <button className="btn-emerald" onClick={handleAdd}>
-            <Plus size={18} />
-            Add item
-          </button>
+          {isOwner && (
+            <button className="btn-emerald" onClick={handleAdd}>
+              <Plus size={18} />
+              Add item
+            </button>
+          )}
         </div>
       ) : (
         <div className="table-card">
@@ -167,7 +180,7 @@ export default function Beverages() {
             <tbody>
               {filteredBeverages.map(beverage => (
                 <tr key={beverage.id} className={deleteConfirm === beverage.id ? 'delete-confirm' : ''}>
-                  {deleteConfirm === beverage.id ? (
+                  {isOwner && deleteConfirm === beverage.id ? (
                     <td colSpan={5}>
                       <div className="delete-confirm-row">
                         <span>Delete {beverage.name}?</span>
@@ -185,7 +198,7 @@ export default function Beverages() {
                     <>
                       <td>{beverage.name}</td>
                       <td>
-                        <span className={`category-badge ${beverage.category.toLowerCase().replace(' ', '')}`}>
+                        <span className={`category-badge ${['drinks','snacks','hotbeverages','smoking'].includes(beverage.category.toLowerCase().replace(/ /g,'')) ? beverage.category.toLowerCase().replace(/ /g,'') : 'custom'}`}>
                           {beverage.category === 'Hot beverages' ? 'HOT' : beverage.category.toUpperCase()}
                         </span>
                       </td>
@@ -205,9 +218,11 @@ export default function Beverages() {
                           <button className="icon-btn" onClick={() => handleEdit(beverage)}>
                             <Edit2 size={16} />
                           </button>
-                          <button className="icon-btn danger" onClick={() => handleDelete(beverage)}>
-                            <Trash2 size={16} />
-                          </button>
+                          {isOwner && (
+                            <button className="icon-btn danger" onClick={() => handleDelete(beverage)}>
+                              <Trash2 size={16} />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </>
@@ -237,118 +252,3 @@ export default function Beverages() {
   );
 }
 
-function BeverageDrawer({ beverage, onClose, onSuccess }) {
-  const [name, setName] = useState(beverage?.name || '');
-  const [category, setCategory] = useState(beverage?.category || 'Drinks');
-  const [price, setPrice] = useState(beverage?.price || '');
-  const [inStock, setInStock] = useState(beverage?.in_stock === 1);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!name || !price) {
-      toast.error('Name and price are required');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const data = {
-        name,
-        category,
-        price: parseFloat(price),
-        inStock
-      };
-
-      const result = beverage
-        ? await window.electron.invoke('beverages:update', { ...data, id: beverage.id })
-        : await window.electron.invoke('beverages:add', data);
-
-      if (result.success) {
-        toast.success('Beverage saved');
-        onSuccess();
-      } else {
-        toast.error(result.error || 'Failed to save beverage');
-      }
-    } catch (error) {
-      toast.error('Failed to save beverage');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <>
-      <div className="drawer-overlay" onClick={onClose} />
-      <div className="drawer">
-        <div className="drawer-header">
-          <h2>{beverage ? 'Edit beverage' : 'Add beverage'}</h2>
-          <button className="icon-btn" onClick={onClose}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <form className="drawer-body" onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="input"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>Category</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="input"
-            >
-              <option value="Drinks">Drinks</option>
-              <option value="Snacks">Snacks</option>
-              <option value="Hot beverages">Hot beverages</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Price (Rs)</label>
-            <input
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              className="input"
-              min="0"
-              step="1"
-              required
-            />
-          </div>
-
-          <div className="form-group-inline">
-            <label>In stock</label>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={inStock}
-                onChange={(e) => setInStock(e.target.checked)}
-              />
-              <span className="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div className="drawer-actions">
-            <button type="button" className="btn-text" onClick={onClose}>
-              Cancel
-            </button>
-            <button type="submit" className="btn-emerald" disabled={loading}>
-              {loading ? 'Saving...' : 'Save'}
-            </button>
-          </div>
-        </form>
-      </div>
-    </>
-  );
-}

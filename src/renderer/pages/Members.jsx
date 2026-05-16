@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, UserPlus, X, Edit2 } from 'lucide-react';
+import { Search, Plus, UserPlus, X, Edit2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import '../styles/members.css';
 import { useToast } from '../hooks/useToast';
@@ -111,15 +111,26 @@ export default function Members() {
       </div>
 
       {filteredMembers.length === 0 ? (
-        <div className="empty-state">
-          <UserPlus size={48} />
-          <h3>No members yet</h3>
-          <p>Add your first member to get started</p>
-          <button className="btn-emerald" onClick={() => setShowAddModal(true)}>
-            <Plus size={18} />
-            Add first member
-          </button>
-        </div>
+        members.length === 0 ? (
+          <div className="empty-state">
+            <UserPlus size={48} />
+            <h3>No members yet</h3>
+            <p>Build your community. Start by registering your regular club players.</p>
+            <button className="btn-emerald" onClick={() => setShowAddModal(true)}>
+              <Plus size={18} />
+              Add first member
+            </button>
+          </div>
+        ) : (
+          <div className="empty-state">
+            <Search size={48} />
+            <h3>No results</h3>
+            <p>No members match your current search or filter.</p>
+            <button className="btn-secondary-members" onClick={() => { setSearchQuery(''); setFilterType('All'); }}>
+              Clear filters
+            </button>
+          </div>
+        )
       ) : (
         <div className="members-grid">
           {filteredMembers.map(member => (
@@ -175,6 +186,10 @@ export default function Members() {
 function MemberDetailPanel({ member, onClose, onUpdate }) {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [adjustAmount, setAdjustAmount] = useState('');
+  const [adjustType, setAdjustType] = useState('topup');
+  const [adjustLoading, setAdjustLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadSessions();
@@ -187,19 +202,51 @@ function MemberDetailPanel({ member, onClose, onUpdate }) {
         endDate: new Date().toISOString().split('T')[0]
       });
       if (result.success) {
-        const memberSessions = result.data.filter(s => s.member_id === member.id);
-        setSessions(memberSessions);
+        setSessions(result.data.filter(s => s.member_id === member.id));
       }
-    } catch (error) {
+    } catch {
       console.error('Failed to load sessions');
     } finally {
       setLoading(false);
     }
   };
 
-  const getInitials = (name) => {
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  const handleAdjust = async (e) => {
+    e.preventDefault();
+    const amount = parseFloat(adjustAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Enter a valid amount');
+      return;
+    }
+    const delta = adjustType === 'topup' ? amount : -amount;
+    const newBalance = (member.balance || 0) + delta;
+    setAdjustLoading(true);
+    try {
+      const result = await window.electron.invoke('members:update', {
+        id: member.id,
+        fullName: member.full_name,
+        phone: member.phone,
+        balance: newBalance
+      });
+      if (result.success) {
+        toast.success(`Balance ${adjustType === 'topup' ? 'topped up' : 'deducted'} · Rs ${amount.toLocaleString()}`);
+        setAdjustAmount('');
+        onUpdate();
+        member.balance = newBalance;
+      } else {
+        toast.error(result.error || 'Failed to update balance');
+      }
+    } catch {
+      toast.error('Failed to update balance');
+    } finally {
+      setAdjustLoading(false);
+    }
   };
+
+  const getInitials = (name) => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+  const currentBalance = member.balance || 0;
+  const balanceClass = currentBalance > 0 ? 'positive' : currentBalance < 0 ? 'negative' : 'zero';
 
   return (
     <>
@@ -264,9 +311,47 @@ function MemberDetailPanel({ member, onClose, onUpdate }) {
             <div className="balance-summary">
               <div className="balance-item">
                 <span className="balance-label">Current Balance</span>
-                <span className="balance-value">Rs {member.balance}</span>
+                <span className={`balance-value ${balanceClass}`}>
+                  Rs {currentBalance.toLocaleString()}
+                </span>
               </div>
             </div>
+
+            <form className="balance-adjust-form" onSubmit={handleAdjust}>
+              <div className="adjust-type-row">
+                <button
+                  type="button"
+                  className={`adjust-type-btn ${adjustType === 'topup' ? 'active topup' : ''}`}
+                  onClick={() => setAdjustType('topup')}
+                >
+                  <ArrowUpCircle size={15} />
+                  Top Up
+                </button>
+                <button
+                  type="button"
+                  className={`adjust-type-btn ${adjustType === 'deduct' ? 'active deduct' : ''}`}
+                  onClick={() => setAdjustType('deduct')}
+                >
+                  <ArrowDownCircle size={15} />
+                  Deduct
+                </button>
+              </div>
+              <div className="adjust-input-row">
+                <span className="adjust-prefix">Rs</span>
+                <input
+                  type="number"
+                  className="adjust-input"
+                  placeholder="0"
+                  value={adjustAmount}
+                  onChange={e => setAdjustAmount(e.target.value)}
+                  min="1"
+                  step="1"
+                />
+                <button type="submit" className="btn-emerald" disabled={adjustLoading}>
+                  {adjustLoading ? '...' : 'Apply'}
+                </button>
+              </div>
+            </form>
           </section>
         </div>
       </div>

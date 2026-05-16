@@ -9,7 +9,7 @@ export function useAuth() {
 
       if (result.success) {
         setUser(result.user);
-        return { success: true };
+        return { success: true, user: result.user };
       } else {
         return { success: false, error: result.error };
       }

@@ -526,3 +526,31 @@
   width: 16px;
   height: 16px;
 }
+
+/* Session log empty state */
+.reports-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.reports-empty-state svg {
+  color: #cbd5e1;
+  margin-bottom: 16px;
+}
+
+.reports-empty-state h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.reports-empty-state p {
+  margin: 0;
+  font-size: 14px;
+  color: #64748b;
+}

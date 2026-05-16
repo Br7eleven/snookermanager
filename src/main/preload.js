@@ -8,6 +8,12 @@ contextBridge.exposeInMainWorld('electron', {
   forgetUsername: () => ipcRenderer.invoke('auth:forgetUsername'),
   getRememberedUsername: () => ipcRenderer.invoke('auth:getRememberedUsername'),
   getTables: () => ipcRenderer.invoke('tables:getAll'),
+  addTable: (data) => ipcRenderer.invoke('tables:add', data),
+  renameTable: (data) => ipcRenderer.invoke('tables:rename', data),
+  deleteTable: (data) => ipcRenderer.invoke('tables:delete', data),
+  addGameType: (data) => ipcRenderer.invoke('gametypes:add', data),
+  updateGameType: (data) => ipcRenderer.invoke('gametypes:update', data),
+  deleteGameType: (data) => ipcRenderer.invoke('gametypes:delete', data),
   updateTableStatus: (data) => ipcRenderer.invoke('tables:updateStatus', data),
   startSession: (data) => ipcRenderer.invoke('sessions:start', data),
   endSession: (data) => ipcRenderer.invoke('sessions:end', data),
@@ -37,4 +43,5 @@ contextBridge.exposeInMainWorld('electron', {
   saveTablesPricing: (data) => ipcRenderer.invoke('settings:saveTablesPricing', data),
   createBackup: () => ipcRenderer.invoke('settings:createBackup'),
   restoreBackup: () => ipcRenderer.invoke('settings:restoreBackup'),
+  printReceipt: (data) => ipcRenderer.invoke('receipt:print', data),
 });

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Play, Plus, X } from 'lucide-react';
+import { Play, Plus, X, CheckCircle, Printer } from 'lucide-react';
+import { format } from 'date-fns';
 import '../styles/tables.css';
 import { useToast } from '../hooks/useToast';
 
@@ -137,7 +138,8 @@ function TableCard({ table, session, isActive, onStartSession, onAddBeverage, on
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const calculateCost = (ms, rate) => {
+  const calculateCost = (ms, rate, billingType) => {
+    if (billingType === 'per_frame') return rate;
     const hours = ms / 3600000;
     return Math.round(hours * rate);
   };
@@ -149,7 +151,7 @@ function TableCard({ table, session, isActive, onStartSession, onAddBeverage, on
 
   if (isActive && session) {
     const gameType = table.game_types?.find(gt => gt.id === session.game_type_id);
-    const runningCost = calculateCost(elapsed, gameType?.rate_per_hour || 0);
+    const runningCost = calculateCost(elapsed, gameType?.rate_per_hour || 0, gameType?.billing_type);
 
     return (
       <div className="table-card active">
@@ -179,7 +181,7 @@ function TableCard({ table, session, isActive, onStartSession, onAddBeverage, on
           <div className="timer-display">{formatTime(elapsed)}</div>
 
           <div className="cost-display">
-            <span className="cost-label">Running cost</span>
+            <span className="cost-label">{gameType?.billing_type === 'per_frame' ? 'Flat rate' : 'Running cost'}</span>
             <span className="cost-amount">Rs {runningCost.toLocaleString()}</span>
           </div>
 
@@ -201,7 +203,7 @@ function TableCard({ table, session, isActive, onStartSession, onAddBeverage, on
         </div>
 
         <div className="table-card-footer">
-          <span className="rate-display">Rs {(gameType?.rate_per_hour || 0).toLocaleString()}/hr</span>
+          <span className="rate-display">Rs {(gameType?.rate_per_hour || 0).toLocaleString()}{gameType?.billing_type === 'per_frame' ? ' flat' : '/hr'}</span>
         </div>
       </div>
     );
@@ -254,7 +256,10 @@ function TableCard({ table, session, isActive, onStartSession, onAddBeverage, on
       </div>
 
       <div className="table-card-footer">
-        <span className="rate-display">Rs {getCurrentRate().toLocaleString()}/hr</span>
+        {(() => {
+          const gt = table.game_types?.find(g => g.id === selectedGameType);
+          return <span className="rate-display">Rs {getCurrentRate().toLocaleString()}{gt?.billing_type === 'per_frame' ? ' flat' : '/hr'}</span>;
+        })()}
       </div>
     </div>
   );
@@ -283,7 +288,7 @@ function StartSessionModal({ table, onClose, onSuccess }) {
         if (result.success) {
           const filtered = result.data.filter(m =>
             m.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            m.phone.includes(searchQuery)
+            (m.phone && m.phone.includes(searchQuery))
           );
           setMembers(filtered);
           setShowMemberDropdown(filtered.length > 0);
@@ -401,7 +406,7 @@ function StartSessionModal({ table, onClose, onSuccess }) {
 
             {selectedGame && (
               <div className="rate-preview">
-                Rate: Rs {selectedGame.rate_per_hour.toLocaleString()}/hr · {table.is_private ? 'Private Room' : 'Open'} · {selectedGame.name}
+                Rate: Rs {selectedGame.rate_per_hour.toLocaleString()}{selectedGame.billing_type === 'per_frame' ? ' flat' : '/hr'} · {table.is_private ? 'Private Room' : 'Open'} · {selectedGame.name}
               </div>
             )}
 
@@ -590,10 +595,12 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
   const [discountReason, setDiscountReason] = useState('');
   const [loading, setLoading] = useState(false);
   const [beverages, setBeverages] = useState([]);
+  const [clubInfo, setClubInfo] = useState({ clubName: 'Cue Club Manager', address: '', currency: 'Rs' });
   const { toast } = useToast();
 
   useEffect(() => {
     loadSessionBeverages();
+    loadClubInfo();
   }, []);
 
   const loadSessionBeverages = async () => {
@@ -603,9 +610,18 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
     }
   };
 
+  const loadClubInfo = async () => {
+    const result = await window.electron.getSettings();
+    if (result.success) {
+      setClubInfo(result.data.general);
+    }
+  };
+
+  const getNow = () => new Date();
+
   const getDuration = () => {
     const start = new Date(session.started_at);
-    const end = new Date();
+    const end = getNow();
     const ms = end - start;
     const hours = Math.floor(ms / 3600000);
     const minutes = Math.floor((ms % 3600000) / 60000);
@@ -615,18 +631,20 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
   const calculateCosts = () => {
     const duration = getDuration();
     const gameType = table.game_types?.find(gt => gt.id === session.game_type_id);
-    const gameCost = Math.round(duration.totalHours * (gameType?.rate_per_hour || 0));
+    const isPerFrame = gameType?.billing_type === 'per_frame';
+    const gameCost = isPerFrame
+      ? Math.round(gameType?.rate_per_hour || 0)
+      : Math.round(duration.totalHours * (gameType?.rate_per_hour || 0));
     const beverageCost = beverages.reduce((sum, item) => sum + (item.unit_price * item.qty), 0);
     const discountAmount = parseInt(discount) || 0;
     const subtotal = gameCost + beverageCost;
-    const total = subtotal - discountAmount;
-    return { gameCost, beverageCost, subtotal, total, duration, gameType };
+    const total = Math.max(0, subtotal - discountAmount);
+    return { gameCost, beverageCost, subtotal, total, duration, gameType, isPerFrame };
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const result = await window.electron.invoke('sessions:end', {
         session_id: session.id,
@@ -635,7 +653,6 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
         discount: parseInt(discount) || 0,
         discount_reason: discountReason || null
       });
-
       if (result.success) {
         const costs = calculateCosts();
         toast.success(`Session closed · Rs ${costs.total.toLocaleString()} collected`);
@@ -644,36 +661,69 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
       } else {
         toast.error(result.error || 'Failed to end session');
       }
-    } catch (error) {
+    } catch {
       toast.error('Failed to end session');
     } finally {
       setLoading(false);
     }
   };
 
+  const receiptDate = format(new Date(session.started_at), 'dd/MM/yyyy');
+  const receiptTime = format(new Date(session.started_at), 'HH:mm');
+
+  const handlePrint = async () => {
+    const cur = clubInfo.currency || 'Rs';
+    const bevRows = beverages.map(item =>
+      `<div class="row"><span>${item.qty}x ${item.beverage_name}</span><span>${cur} ${(item.qty * item.unit_price).toLocaleString()}</span></div>`
+    ).join('');
+    const discountRow = parseInt(discount) > 0
+      ? `<div class="row"><span>Discount${discountReason ? ` (${discountReason})` : ''}</span><span>-${cur} ${parseInt(discount).toLocaleString()}</span></div>`
+      : '';
+    const html = `
+      <div class="shop-name">${clubInfo.clubName}</div>
+      ${clubInfo.address ? `<div class="address">${clubInfo.address}</div>` : ''}
+      <div class="title">CASH RECEIPT</div>
+      <div class="dots"></div>
+      <div class="row"><span>Date:</span><span>${receiptDate}</span></div>
+      <div class="row"><span>Time:</span><span>${receiptTime}</span></div>
+      <div class="row"><span>Table:</span><span>${table.name}</span></div>
+      <div class="row"><span>Game:</span><span>${costs.gameType?.name}</span></div>
+      ${session.player_name ? `<div class="row"><span>Player:</span><span>${session.player_name}</span></div>` : ''}
+      <div class="row"><span>Duration:</span><span>${costs.duration.hours}h ${costs.duration.minutes}m</span></div>
+      <div class="dots"></div>
+      <div class="row"><span>${costs.isPerFrame ? `${costs.gameType?.name} (flat)` : 'Game time'}</span><span>${cur} ${costs.gameCost.toLocaleString()}</span></div>
+      ${bevRows}
+      ${discountRow}
+      <div class="dots"></div>
+      <div class="row total"><span>Total</span><span>${cur} ${costs.total.toLocaleString()}</span></div>
+      <div class="row"><span>Cash</span><span>${paymentMethod}</span></div>
+      <div class="dots"></div>
+      <div class="thankyou">THANK YOU</div>
+      <div class="barcode">||||| |||| |||||</div>
+    `;
+    await window.electron.printReceipt({ html });
+  };
+
   const costs = calculateCosts();
-  const { duration, gameType } = costs;
+  const { duration, gameType, isPerFrame } = costs;
+  const startTime = format(new Date(session.started_at), 'h:mm a');
+  const endTime = format(getNow(), 'h:mm a');
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal end-session-modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>End Session</h2>
+          <div className="session-modal-title">
+            <span className="session-modal-table">{table.name} · {gameType?.name}</span>
+            <span className="session-active-badge">Active Session</span>
+          </div>
           <button className="modal-close" onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
         <div className="modal-body">
-          <div className="session-info">
-            <div className="info-row">
-              <span className="info-label">Table</span>
-              <span className="info-value">{table.name}</span>
-            </div>
-            <div className="info-row">
-              <span className="info-label">Game type</span>
-              <span className="info-value">{gameType?.name}</span>
-            </div>
+          <div className="session-info-grid">
             {session.player_name && (
               <div className="info-row">
                 <span className="info-label">Player</span>
@@ -682,27 +732,36 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
             )}
             <div className="info-row">
               <span className="info-label">Duration</span>
-              <span className="info-value">{duration.hours}h {duration.minutes}m</span>
+              <span className="info-value">{duration.hours} hr {duration.minutes} min</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">Start Time</span>
+              <span className="info-value">{startTime}</span>
+            </div>
+            <div className="info-row">
+              <span className="info-label">End Time</span>
+              <span className="info-value">{endTime}</span>
             </div>
           </div>
 
           <div className="cost-breakdown">
             <div className="breakdown-row">
-              <span>Game time</span>
-              <span>{duration.totalHours.toFixed(1)} hrs × Rs {gameType?.rate_per_hour || 0}</span>
+              <span>
+                {isPerFrame
+                  ? `${gameType?.name} · flat rate`
+                  : `Game time: ${duration.totalHours.toFixed(2)} hrs × Rs ${gameType?.rate_per_hour || 0}/hr`}
+              </span>
               <span>Rs {costs.gameCost.toLocaleString()}</span>
             </div>
 
             {beverages.length > 0 && (
               <>
-                <div className="breakdown-section-title">Beverages</div>
-                {beverages.map(item => (
-                  <div key={item.id} className="breakdown-row">
-                    <span>{item.qty}× {item.beverage_name}</span>
-                    <span></span>
-                    <span>Rs {(item.qty * item.unit_price).toLocaleString()}</span>
-                  </div>
-                ))}
+                <div className="breakdown-row bev-summary">
+                  <span>
+                    Beverages: {beverages.map(i => `${i.qty}x ${i.beverage_name}`).join(', ')}
+                  </span>
+                  <span>Rs {costs.beverageCost.toLocaleString()}</span>
+                </div>
               </>
             )}
 
@@ -710,21 +769,18 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
 
             <div className="breakdown-row subtotal">
               <span>Subtotal</span>
-              <span></span>
               <span>Rs {costs.subtotal.toLocaleString()}</span>
             </div>
 
-            {discount && parseInt(discount) > 0 && (
+            {parseInt(discount) > 0 && (
               <div className="breakdown-row discount">
-                <span>Discount</span>
-                <span></span>
-                <span>− Rs {parseInt(discount).toLocaleString()}</span>
+                <span>Discount Applied</span>
+                <span>−Rs {parseInt(discount).toLocaleString()}</span>
               </div>
             )}
 
-            <div className="breakdown-row total">
-              <span>TOTAL</span>
-              <span></span>
+            <div className="breakdown-row total-payable">
+              <span>Total Amount Payable</span>
               <span>Rs {costs.total.toLocaleString()}</span>
             </div>
           </div>
@@ -757,7 +813,7 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
               />
             </div>
 
-            {discount && parseInt(discount) > 0 && (
+            {parseInt(discount) > 0 && (
               <div className="form-group">
                 <input
                   type="text"
@@ -769,11 +825,17 @@ function EndSessionModal({ table, session, onClose, onSuccess }) {
               </div>
             )}
 
+            <div className="session-close-note">
+              Confirming will mark the table as vacant and archive this session permanently.
+            </div>
+
             <div className="modal-actions">
-              <button type="button" className="btn-secondary" onClick={() => window.print()}>
+              <button type="button" className="btn-secondary btn-print" onClick={handlePrint}>
+                <Printer size={15} />
                 Print receipt
               </button>
-              <button type="submit" className="btn-coral btn-large" disabled={loading}>
+              <button type="submit" className="btn-emerald btn-large" disabled={loading}>
+                <CheckCircle size={16} />
                 {loading ? 'Closing...' : 'Confirm & close session'}
               </button>
             </div>

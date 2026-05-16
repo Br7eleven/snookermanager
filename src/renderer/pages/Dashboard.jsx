@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table2, TrendingUp, Users, ShoppingBag } from 'lucide-react';
+import { Table2, TrendingUp, Users, ShoppingBag, Circle } from 'lucide-react';
 import { intervalToDuration, formatDistanceToNow } from 'date-fns';
 import '../styles/dashboard.css';
 
@@ -21,20 +21,22 @@ export default function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [sessionsResult, dailyReport] = await Promise.all([
+      const [sessionsResult, dailyReport, tablesResult] = await Promise.all([
         window.electron.getActiveSessions(),
         window.electron.getDailyReport({ date: new Date().toISOString().split('T')[0] }),
+        window.electron.getTables(),
       ]);
 
       // Calculate metrics
-      const activeSessions = sessionsResult.success ? sessionsResult.sessions : [];
+      const activeSessions = sessionsResult.success ? sessionsResult.data : [];
+      const totalTables = tablesResult.success ? tablesResult.data.length : 0;
       const avgTime = activeSessions.length > 0
         ? activeSessions.reduce((sum, s) => sum + (Date.now() - new Date(s.started_at).getTime()), 0) / activeSessions.length / 60000
         : 0;
 
       setMetrics({
         tablesInUse: activeSessions.length,
-        totalTables: 6,
+        totalTables,
         todayRevenue: dailyReport.success ? dailyReport.data.totalRevenue : 0,
         revenueChange: dailyReport.success ? dailyReport.data.revenueChange || 0 : 0,
         activeSessions: activeSessions.length,
@@ -174,9 +176,9 @@ export default function Dashboard() {
             </div>
           ) : activeTables.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🎱</div>
+              <Circle size={48} className="empty-state-icon" />
               <p className="empty-title">No active sessions</p>
-              <p className="empty-subtitle">All tables are free right now</p>
+              <p className="empty-subtitle">The tables are currently quiet. Ready to check in a new player?</p>
               <button onClick={() => navigate('/tables')} className="btn-emerald">
                 Start a session
               </button>

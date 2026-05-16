@@ -7,14 +7,16 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
 
-  const navItems = [
+  const allNavItems = [
     { path: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { path: '/tables', icon: Table2, label: 'Tables' },
     { path: '/beverages', icon: ShoppingBag, label: 'Beverages' },
     { path: '/members', icon: Users, label: 'Members' },
-    { path: '/reports', icon: BarChart2, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
+    { path: '/reports', icon: BarChart2, label: 'Reports', ownerOnly: true },
+    { path: '/settings', icon: Settings, label: 'Settings', ownerOnly: true },
   ];
+
+  const navItems = allNavItems.filter(item => !item.ownerOnly || user?.role === 'owner');
 
   const handleLogout = async () => {
     await logout();

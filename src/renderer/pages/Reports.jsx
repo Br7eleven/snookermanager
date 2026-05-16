@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, DollarSign, Users, Trophy, Timer } from 'lucide-react';
+import { Download, DollarSign, Users, Trophy, Timer, BarChart2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '../hooks/useToast';
 import '../styles/reports.css';
@@ -225,6 +225,14 @@ export default function Reports() {
               Showing {indexOfFirstSession + 1}-{Math.min(indexOfLastSession, sessions.length)} of {sessions.length}
             </span>
           </div>
+          {sessions.length === 0 ? (
+            <div className="reports-empty-state">
+              <BarChart2 size={48} />
+              <h3>No sessions yet</h3>
+              <p>No sessions have been recorded for this period.</p>
+            </div>
+          ) : (
+          <>
           <table className="session-table">
             <thead>
               <tr>
@@ -288,6 +296,8 @@ export default function Reports() {
               ›
             </button>
           </div>
+          </>
+          )}
         </div>
 
         <div className="export-section">

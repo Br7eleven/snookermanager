@@ -1,7 +1,9 @@
 {
   "name": "cue-club-manager",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Snooker and billiards club management system",
+  "author": "Cue Club Manager",
   "type": "module",
   "main": "src/main/main.js",
   "scripts": {
@@ -29,26 +31,25 @@
     }
   },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.2.4",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.9.0",
     "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "date-fns": "^4.1.0",
-    "electron": "33.4.11",
-    "electron-builder": "^26.8.1",
     "electron-store": "^11.0.2",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-router-dom": "^7.15.0",
-    "recharts": "^3.8.1",
     "wait-on": "^9.0.5",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.4",
+    "electron": "33.4.11",
+    "electron-builder": "^26.8.1",
     "@eslint/js": "^10.0.1",
+    "@tailwindcss/postcss": "^4.2.4",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",

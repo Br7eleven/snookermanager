@@ -132,6 +132,16 @@
   color: #3b82f6;
 }
 
+.category-badge.smoking {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.category-badge.custom {
+  background: #fef3c7;
+  color: #92400e;
+}
+
 .beverages-table tbody tr.delete-confirm {
   background: #fef2f2;
 }
