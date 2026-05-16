@@ -94,6 +94,7 @@
 /* RIGHT PANEL */
 
 .login-right {
+  position: relative;
   width: 50%;
   height: 100%;
   background: #ffffff;
@@ -335,6 +336,22 @@
 .login-forgot span {
   font-size: 12px;
   color: #9ca3af;
+}
+
+.login-powered-by {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.login-company-name {
+  color: #10b981;
+  font-weight: 600;
 }
 
 /* Animations */

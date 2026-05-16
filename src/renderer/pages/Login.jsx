@@ -189,6 +189,12 @@ export default function Login() {
           </form>
 
         </div>
+
+        <p className="login-powered-by">
+          Powered by{' '}
+          <span className="login-company-name">BR7 Technologies &amp; Co.</span>
+        </p>
+
       </div>
 
     </div>

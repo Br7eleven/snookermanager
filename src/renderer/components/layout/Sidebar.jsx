@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Table2, ShoppingBag, Users, BarChart2, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Table2, ShoppingBag, Users, BarChart2, Settings, LogOut, Info } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import '../../styles/sidebar.css';
 
@@ -61,6 +61,21 @@ export default function Sidebar() {
           ))}
         </ul>
       </nav>
+
+      {/* Brand Footer */}
+      <div className="sidebar-brand">
+        <button className="sidebar-brand-about" onClick={() => window.electron.showAbout()} title="About this app">
+          <Info size={12} />
+          <span>About</span>
+        </button>
+        <p className="sidebar-brand-name">BR7 Technologies &amp; Co.</p>
+        <p className="sidebar-brand-url">br7tech.dev</p>
+        <div className="sidebar-brand-legal">
+          <button className="sidebar-brand-legal-link" onClick={() => navigate('/privacy')}>Privacy Policy</button>
+          <span className="sidebar-brand-legal-dot">·</span>
+          <button className="sidebar-brand-legal-link" onClick={() => navigate('/terms')}>Terms</button>
+        </div>
+      </div>
 
       {/* User Chip */}
       <div className="sidebar-user">

@@ -44,4 +44,6 @@ contextBridge.exposeInMainWorld('electron', {
   createBackup: () => ipcRenderer.invoke('settings:createBackup'),
   restoreBackup: () => ipcRenderer.invoke('settings:restoreBackup'),
   printReceipt: (data) => ipcRenderer.invoke('receipt:print', data),
+  showAbout: () => ipcRenderer.invoke('app:showAbout'),
+  openLegal: (page) => ipcRenderer.invoke('app:openLegal', page),
 });

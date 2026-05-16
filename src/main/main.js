@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { initializeDatabase } from './db.js';
@@ -38,6 +38,27 @@ app.whenReady().then(() => {
   initializeDatabase();
   setupIpcHandlers();
   createWindow();
+
+  app.setAboutPanelOptions({
+    applicationName: 'Cue Club Manager',
+    applicationVersion: '1.0.0',
+    version: '1.0.0',
+    copyright: '© 2025 BR7 Technologies & Co.\nAll rights reserved.\n\nbr7tech.dev\nhello@br7tech.dev\n\nPrivacy Policy & Terms: br7tech.dev/legal',
+    website: 'https://br7tech.dev',
+  });
+
+  ipcMain.handle('app:showAbout', () => {
+    app.showAboutPanel();
+  });
+
+  ipcMain.handle('app:openLegal', (_e, page) => {
+    const urls = {
+      privacy: 'https://br7tech.dev/privacy',
+      terms: 'https://br7tech.dev/terms',
+      contact: 'mailto:hello@br7tech.dev',
+    };
+    if (urls[page]) shell.openExternal(urls[page]);
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

@@ -10,6 +10,8 @@ import Beverages from './pages/Beverages';
 import Members from './pages/Members';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 
 function App() {
   const { isAuthenticated } = useAuth();
@@ -33,6 +35,8 @@ function App() {
           <Route path="/members" element={<Members />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
         </Route>
       </Routes>
     </BrowserRouter>
